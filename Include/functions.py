@@ -29,7 +29,7 @@ def importFirstWall():
 
 
 
-def saveSpectra(spectra, energyVector):
+def saveSpectra(spectra, energyVector, timestamp):
 
     if "1" in config.file_rgrs:
         detector = "los1"
@@ -49,7 +49,7 @@ def saveSpectra(spectra, energyVector):
 
         dataSave = np.vstack((energyVector, value)).T
 
-        savename = "Spectrum_" + key + "_" + detector + ".txt"
+        savename = "Spectrum_" + key + "_" + detector + "_t" + str(timestamp) + "ms.txt"
         np.savetxt(savepath+savename, dataSave, header='Energy [MeV] \t-\t Rate [MeV^-1 s^-1]')
 
 

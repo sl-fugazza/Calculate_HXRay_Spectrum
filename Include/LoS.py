@@ -25,6 +25,10 @@ class LineOfSight:
 
         self.R  = np.sqrt(self.x**2 + self.y**2)
         dR, dZ = self.R-config.R_Maxis, self.z - config.Z_Maxis
+
+        # We do not consider the actual magnetic equilibrium.
+        # Instead we suppose perfectly circular flux surfaces
+        # In RE events it should be good enough
         self.r = np.sqrt(dR**2 + dZ**2)
 
         self.voxelID = np.arange(len(self.r))

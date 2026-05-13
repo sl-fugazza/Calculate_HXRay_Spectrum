@@ -54,9 +54,9 @@ def main():
     
     myLOS = los.LineOfSight(losFilename=config.file_rgrs)
     # los_params = myLOS.getVoxelList() # extract voxel info
-    # myLOS.plotLos("3D") # plot the los (2D or 3D)
+    myLOS.plotLos("2D") # plot the los (2D or 3D)
 
-    
+
 
 
 
@@ -80,7 +80,7 @@ def main():
     
     # add custom species like Tungsten 2 times ionised
     # myPlasma.addSpecies("W74", 74, "nh.txt", 1e-4) # WORST case ever (higly unlikely)
-    myPlasma.addSpecies("W2", 2, "nh.txt", 1e-4) # more likely
+    myPlasma.addSpecies("W74", 74, "nh.txt", 1e-4) # more likely
     # Here, I take a distribution like Hydrogen but with a sclaing factor of 1e-4
 
     # get the density value
@@ -145,12 +145,13 @@ def main():
     #print(spectra)
 
     # save spectra
-    func.saveSpectra(spectra, Ehxr)
+    func.saveSpectra(spectra, Ehxr, t0)
     # plot spectra
     func.plotSpectra(spectra, Ehxr)
 
 
-
+# Acciao inossidabile 4 cm + 1.2 m di LiH 
+# il fondo si abbassa di un 10^4
     
 
 # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
