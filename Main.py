@@ -5,7 +5,7 @@ import sys
 import Include.config as config
 config.simFolder = "H26-S10"
 config.simPath = "./Data/" + config.simFolder + "/"
-config.file_rgrs = "D2_RGRS.txt"
+config.file_rgrs = "new_D3_RGRS.txt"
 
 import Include.Plasma as plasma
 import Include.LoS as los 
@@ -99,7 +99,7 @@ def main():
     #--------------------------------------------
 
     # first, define the RE energy vector
-    Ere = np.linspace(0.1, 30.1, 51)
+    Ere = np.linspace(0.01, 30.1, 51)
     # and import the RE density 
     nre = func.importREdensity("nRE.txt")
     
@@ -135,7 +135,7 @@ def main():
     #--------------------------------------------
     
     # define the hard-x rays energy values
-    Ehxr = np.linspace(0.1, np.max(Ere), 101) # MeV
+    Ehxr = np.linspace(np.min(Ere), 15.0, 101) # MeV
     #Ehxr = np.logspace(-1, +1, 101) # MeV
     
     # calculation of the spectrum for each ion contribution

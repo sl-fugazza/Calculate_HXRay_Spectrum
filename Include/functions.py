@@ -65,11 +65,12 @@ def plotSpectra(spectra, Ehxr):
     fig, ax = plt.subplots(figsize=(15,10))
 
     for key, value in spectra.items():
-        ax.plot(Ehxr, value, label=key, linewidth = 2.5)
+        ax.plot(Ehxr, value*1e-3, label=key, linewidth = 2.5) # milliseconds
 
+    ax.set_ylim([1e0, None])
     ax.set_yscale('log')
     ax.set_title("Bremsstrahlung Spectra")
-    ax.set_ylabel("Rate (MeV^-1 s^-1)")
+    ax.set_ylabel("Rate (MeV^-1 ms^-1)")
     ax.set_xlabel("Energy (MeV)")
     ax.legend()
     ax.grid()
