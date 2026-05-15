@@ -29,6 +29,53 @@ def importFirstWall():
 
 
 
+def attenuateSpectrum(spectrum, Ehxr, materials):
+
+    from scipy.interpolate import interp1d, CubicSpline
+
+    newSpectrum = spectrum
+    for mat_key, mat_values in materials.items():
+        print("Applyng attenuation of " + mat_key + " to the spectrum")
+        nameFile, thickness = mat_values[0], mat_values[1]*1e2 # centimetres
+        
+        E_phot, mu = np.loadtxt("./Data/attenuationCoefficients/"+nameFile, 
+                                unpack = True, skiprows=1)
+        # checking and fixing the energy vector of the photons:
+        # there can be a K-shell jump
+        for i in range(len(E_phot)-1):
+            if E_phot[i] >= E_phot[i+1]: # in principle, using == should work, but let's be safe
+                E_phot[i+1] = E_phot[i]+ 0.01*E_phot[i] # just 1 percent bigger
+
+        # cs = interp1d(E_phot, mu, kind='linear')
+        cs = CubicSpline(E_phot, mu)
+        new_mu = cs(Ehxr) # value of mu corresponding to the energy bin of the spectrum
+
+
+        # plot check
+        '''
+        fig, ax = plt.subplots(figsize=(15,10))
+        ax.plot(E_phot, mu)
+        ax.plot(Ehxr, new_mu)
+        ax.set_yscale("log")
+        ax.set_xscale("log")
+        ax.grid()
+        plt.show() 
+        '''
+
+        newSpectrum = newSpectrum * np.exp(-new_mu*thickness)
+        '''
+        fig, ax = plt.subplots(figsize=(15,10))
+        ax.plot(Ehxr, newSpectrum)
+        ax.set_yscale("log")
+        newSpectrum = newSpectrum * np.exp(-new_mu*thickness)
+        ax.plot(Ehxr, newSpectrum)
+        ax.grid()
+        plt.show() 
+        '''
+
+    return newSpectrum
+
+
 def saveSpectra(spectra, energyVector, timestamp):
 
     if "1" in config.file_rgrs:
@@ -67,7 +114,7 @@ def plotSpectra(spectra, Ehxr):
     for key, value in spectra.items():
         ax.plot(Ehxr, value*1e-3, label=key, linewidth = 2.5) # milliseconds
 
-    ax.set_ylim([1e0, None])
+    #ax.set_ylim([1e0, None])
     ax.set_yscale('log')
     ax.set_title("Bremsstrahlung Spectra")
     ax.set_ylabel("Rate (MeV^-1 ms^-1)")
@@ -75,3 +122,6 @@ def plotSpectra(spectra, Ehxr):
     ax.legend()
     ax.grid()
     plt.show()
+
+
+

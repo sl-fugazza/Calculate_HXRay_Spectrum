@@ -103,7 +103,8 @@ def calculateHXREnergyProbabilityDist(Ere,Z, Ehx):
 # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 def CalculateBremsstrahlungSpectra(timestamp, Ehxr,
-                                    LineOfSight, Plasma, REdistribution):
+                                    LineOfSight, Plasma, REdistribution,
+                                    materials = None):
 
     # .....................................................
     # importing and preparing all inputs and parameters
@@ -196,6 +197,10 @@ def CalculateBremsstrahlungSpectra(timestamp, Ehxr,
 
             # summing into the resulting ion spectrum:
             ionSpectrum  += voxelSpectrum
+
+        # finally, apply attenuation
+        if materials is not None:
+            ionSpectrum = func.attenuateSpectrum(ionSpectrum, Ehxr, materials)
 
         # add the spectrum for the specific ion
         allSpectra[ion] = ionSpectrum

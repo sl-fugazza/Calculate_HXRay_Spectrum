@@ -54,7 +54,7 @@ def main():
     
     myLOS = los.LineOfSight(losFilename=config.file_rgrs)
     # los_params = myLOS.getVoxelList() # extract voxel info
-    myLOS.plotLos("2D") # plot the los (2D or 3D)
+    # myLOS.plotLos("2D") # plot the los (2D or 3D)
 
 
 
@@ -78,10 +78,11 @@ def main():
     myPlasma = plasma.Plasma(r_coord, t_coord, 
                              [hydro, deut, trit, neon1, neon2]) 
     
-    # add custom species like Tungsten 2 times ionised
-    # myPlasma.addSpecies("W74", 74, "nh.txt", 1e-4) # WORST case ever (higly unlikely)
-    myPlasma.addSpecies("W74", 74, "nh.txt", 1e-4) # more likely
-    # Here, I take a distribution like Hydrogen but with a sclaing factor of 1e-4
+    # add custom species like W 2+ and W 74+ 
+    myPlasma.addSpecies("W2", 2, "nh.txt", 1e-4) 
+    myPlasma.addSpecies("W74", 74, "nh.txt", 1e-5)
+    # Here, I take a distribution like Hydrogen 
+    # but with a sclaing factor of 1e-4 / 1e-5
 
     # get the density value
     #densH = myPlasma.getDensValue("H", r0, t0)
@@ -99,7 +100,7 @@ def main():
     #--------------------------------------------
 
     # first, define the RE energy vector
-    Ere = np.linspace(0.01, 30.1, 51)
+    Ere = np.linspace(0.1, 30.1, 51)
     # and import the RE density 
     nre = func.importREdensity("nRE.txt")
     
@@ -137,11 +138,15 @@ def main():
     # define the hard-x rays energy values
     Ehxr = np.linspace(np.min(Ere), 15.0, 101) # MeV
     #Ehxr = np.logspace(-1, +1, 101) # MeV
-    
+
+    # define attenuating material
+    attenuators = {"LiH": ["LiH_attenuation.txt", 1.2] 
+                   ,"Steel": ["Steel304_attenuation.txt", 0.1]}
     # calculation of the spectrum for each ion contribution
     # timestamp, hxr energy vector + los, palsma and re_dist
     spectra = calcSpec.CalculateBremsstrahlungSpectra(t0, Ehxr,
-                                    myLOS, myPlasma, myRE)
+                                    myLOS, myPlasma, myRE
+                                    ,materials = attenuators) 
     #print(spectra)
 
     # save spectra
