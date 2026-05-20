@@ -103,8 +103,7 @@ def calculateHXREnergyProbabilityDist(Ere,Z, Ehx):
 # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 def CalculateBremsstrahlungSpectra(timestamp, Ehxr,
-                                    LineOfSight, Plasma, REdistribution,
-                                    materials = None):
+                                    LineOfSight, Plasma, REdistribution):
 
     # .....................................................
     # importing and preparing all inputs and parameters
@@ -112,6 +111,8 @@ def CalculateBremsstrahlungSpectra(timestamp, Ehxr,
     # importing the line of sight
     los = LineOfSight.getVoxelList()
     r_voxels = np.array([ v[1] for v in los]) # extracting the r coordinated from each voxel
+
+    materials = LineOfSight.getAttenuatingMaterials()
 
     # importing coordinates:
     r_plasma, t_plasma = Plasma.getPlasmaCoordinates()

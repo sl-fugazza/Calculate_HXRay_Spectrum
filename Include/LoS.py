@@ -10,7 +10,13 @@ import functions as func
 class LineOfSight:
 
     
-    def __init__(self, losFilename):
+    def __init__(self, losFilename, Attenuators = None):
+
+        self.attenuators = {}
+        if Attenuators is not None and isinstance(Attenuators, dict):
+            self.attenuators  = Attenuators
+        else:
+            print("Attenuators not defined. Continuing without materials ...")
         
         los = np.loadtxt("./Data/linesOfSight/" + losFilename)
 
@@ -37,6 +43,18 @@ class LineOfSight:
         return list(zip(*[self.voxelID,self.r, self.Saf, self.Vol, self.ux, self.uy, self.uz]))
         # this is a list of tuples organized such that each tuple represents a voxel
 
+    def addAttenuator(self, name, filename, length):
+        self.attenuators[name] = [filename, length]
+
+
+    def getAttenuatingMaterials(self):
+        return self.attenuators
+    
+    def printAttenuators(self):
+        for key in self.attenuators.keys():
+            print(key, self.attenuators[key][1])
+
+
     def plotLos(self, type):
         
         import matplotlib.pyplot as plt 
@@ -51,7 +69,7 @@ class LineOfSight:
             print("2D plot of the Line of Sight")
 
             fig, ax = plt.subplots(figsize=(15,10))
-            sc = ax.scatter(self.R, self.z, c=self.Saf*self.Vol, cmap="plasma", s=10, norm=LogNorm())
+            sc = ax.scatter(self.R, self.z, c=self.Saf*self.Vol, cmap="plasma", s=50*self.Saf*self.Vol/np.max(self.Saf*self.Vol), norm=LogNorm())
             cbar = fig.colorbar(sc, ax = ax)
             ax.plot(Rw,Zw, linewidth = 3, color = "orange")
             ax.set_xlabel("R (m)")
