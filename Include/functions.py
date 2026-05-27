@@ -4,7 +4,7 @@ import numpy as np
 import sys, os
 import matplotlib.pyplot as plt 
 
-
+from scipy.interpolate import interp1d, CubicSpline
 
 def importCoordinates(r_filename, t_filename):
     r = np.loadtxt(config.simPath + r_filename)
@@ -31,7 +31,7 @@ def importFirstWall():
 
 def attenuateSpectrum(spectrum, Ehxr, materials):
 
-    from scipy.interpolate import interp1d, CubicSpline
+    
 
     newSpectrum = spectrum
     for mat_key, mat_values in materials.items():
@@ -125,3 +125,20 @@ def plotSpectra(spectra, Ehxr):
 
 
 
+def importBackground(Ehxr, factor = 1e-4):
+
+    filename = "./Data/firstWall_background/DT537MW_attenuated_det{}.txt".format(config.detector)
+
+    background = np.loadtxt(filename, unpack = True, skiprows=2)
+
+    E, R = background[0], background[1] # R is already attenuated and det efficiency is already considered
+    ebw = E[1:] - E[:-1]
+    ebw = np.append(ebw, ebw[-1])
+    R = factor*R/ebw                # from Votta's paper: 1e-4
+                                    # of residual attenuation
+
+    cs = CubicSpline(E, R)
+    R = cs(Ehxr)
+
+
+    return R

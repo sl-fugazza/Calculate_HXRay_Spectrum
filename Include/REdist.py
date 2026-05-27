@@ -31,13 +31,13 @@ class REdist:
         if type == "SimpleExponential":
             
             if len(parameter) != 1:
-                print("Please, give a single value parameter for SimpleExponential distribution")
+                print("Please, give a single value list [param] for SimpleExponential distribution")
                 sys.exit()
             else:
                 parameter = parameter[0]
 
             for k in range(len(self.Ere)):
-                self.normDist[:,:,k] = 1.0/parameter * np.exp(-self.Ere[k]/parameter)
+                self.normDist[:,:,k] = 1/parameter * np.exp(-self.Ere[k]/parameter)
 
         elif type == "Exponential":
 

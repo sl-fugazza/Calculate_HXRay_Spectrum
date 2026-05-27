@@ -2,9 +2,10 @@ import numpy as np
 import sys
 
 import Include.config as config
-config.simFolder = "H26-S10"                            # insert here the simulation ID (aka, the folder name)
-config.simPath = "./Data/" + config.simFolder + "/"     
-config.file_rgrs = "new_D3_RGRS.txt"                    # insert the Line of Sight filename
+config.simFolder = "DT-M5"                    # insert here the simulation ID (aka, the folder name)
+config.simPath = "./Data/DREAM_Simulations/" + config.simFolder + "/"    
+config.detector = 2
+config.file_rgrs = "new_D{}_RGRS.txt".format(config.detector)  # insert the Line of Sight filename
 
 import Include.Plasma as plasma
 import Include.LoS as los 
@@ -12,7 +13,7 @@ import Include.REdist as redist
 import Include.functions as func
 import Include.CalculateSpectrum as calcSpec
 
-# import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt 
 # from ControlRoom import *
 
 
@@ -53,14 +54,19 @@ def main():
     #--------------------------------------------
     
     # define attenuating materials
-    Attenuators = {"LiH": ["LiH_attenuation.txt", 1.2] # file + length in metres
+    Attenuators = {"LiH": ["LiH_attenuation.txt", 1.2] 
                    ,"Steel": ["Steel304_attenuation.txt", 0.04]}
+    # file + length in metres
+
     # initialise los
-    myLOS = los.LineOfSight(losFilename=config.file_rgrs, Attenuators = Attenuators)
+    myLOS = los.LineOfSight(losFilename=config.file_rgrs, 
+                            Attenuators = Attenuators)
     # los_params = myLOS.getVoxelList() # extract voxel info
+
     # myLOS.plotLos("2D") # plot the los (2D or 3D)
     
-    #myLOS.addAttenuator("Test", "Steel304_attenuation.txt", 0.01)
+    #myLOS.addAttenuator("Test", 
+    # "Steel304_attenuation.txt", 0.01)
     myLOS.printAttenuators()
 
 
@@ -79,7 +85,7 @@ def main():
     hydro = func.importSpecies("H", 1, "nh.txt") # dovrei aggiungerci anche il neutro
     deut = func.importSpecies("D", 1, "nd.txt") # in teoria anche il neutro
     trit = func.importSpecies("T", 1, "nt.txt") # dovrei aggiunger eanche il neutro
-    neon = func.importSpecies("Ne", 10, "nne1.txt") # in realta ora devo usare tutto il neon e non solo dal file nne1.txt
+    neon = func.importSpecies("Ne", 10, "nne.txt") # in realta ora devo usare tutto il neon e non solo dal file nne1.txt
     
     # initialize plasma
     myPlasma = plasma.Plasma(r_coord, t_coord, 
@@ -94,7 +100,7 @@ def main():
     # densH = myPlasma.getDensValue("H", r0, t0)
 
     # plot density matrix
-    # myPlasma.plotIonDensity("Ne2")
+    # myPlasma.plotIonDensity("Ne")
     
 
 
@@ -102,12 +108,15 @@ def main():
 
 
     #--------------------------------------------
-    # INITIALIZE THE RE DISTRIBUTION
+    # INITIALIZE THE RE DISTRIBUTION             
     #--------------------------------------------
 
     # first, define the RE energy vector
-    Ere = np.linspace(0.1, 30.1, 51)
-
+    #u, p = np.linspace(0.0, 1.0, 401), 2.0
+    #Emin, Emax = 1.0, 31.0
+    #Ere = Emin + (Emax-Emin)*u**p
+    Ere = np.linspace(.1, 30.1, 401)
+    
     # and import the RE density 
     nre = func.importREdensity("nRE.txt")
     
@@ -139,14 +148,14 @@ def main():
 
 
     #--------------------------------------------
-    # CALCULATING THE SPECTRUM and PLOTTING
+    # CALCULATING THE SPECTRUM
     #--------------------------------------------
     
     # define the hard-x rays energy values
     # Ehxr = np.linspace(np.min(Ere), 15.0, 101) # MeV
     # or: 
-    u, p = np.linspace(0.0, 1.0, 101), 2.0
-    Emin, Emax = 0.05, 10.01
+    u, p = np.linspace(0.0, 1.0, 401), 2.0
+    Emin, Emax = 0.1, 10.1
     Ehxr = Emin + (Emax-Emin)*u**p  # this for concentrating energy point in the low energy range
     # or:
     #Ehxr = np.logspace(-1, +1, 101) # MeV
@@ -154,20 +163,55 @@ def main():
     # calculation of the spectrum for each ion contribution
     # timestamp, hxr energy vector + los, palsma and re_dist
     spectra = calcSpec.CalculateBremsstrahlungSpectra(t0, Ehxr,
-                                    myLOS, myPlasma, myRE) 
+                                    myLOS, myPlasma, myRE,
+                                    Efficiency=0.8) # we suppose constant detector efficiency
     #print(spectra)
 
     # save spectra
     func.saveSpectra(spectra, Ehxr, t0)
     # plot spectra
-    func.plotSpectra(spectra, Ehxr)
+    # func.plotSpectra(spectra, Ehxr)
 
 
 
 
-    # BACKGROUND
-    # il fondo va giu' di 10^4 -- attivazione residua
-    # leggere il paper di Votta
+
+
+
+
+    # --------------------------------------------
+    # BACKGROUND + FINAL PLOT
+    #--------------------------------------------
+
+    backG = func.importBackground(Ehxr, factor = 1e-4)
+
+    TotEmission = backG
+
+
+    fig, ax = plt.subplots(figsize=(15,5))
+
+    ax.plot(Ehxr, backG*1e-3, label="BG", linewidth = 2.5) # milliseconds
+
+    for key, value in spectra.items():
+        TotEmission += value
+        ax.plot(Ehxr, value*1e-3, label=key, linewidth = 2.5) # milliseconds
+
+    # ax.plot(Ehxr, TotEmission*1e-3, label="Total" , linewidth = 3.5) # milliseconds
+
+    ax.set_yscale('log')
+    ax.set_title("Bremsstrahlung and background Spectra")
+    ax.set_ylabel("Rate (MeV^-1 ms^-1)")
+    ax.set_xlabel("Energy (MeV)")
+    ax.legend()
+    ax.grid()
+
+    plt.show()
+
+
+
+
+
+
 
 
     # --------------------------------------------

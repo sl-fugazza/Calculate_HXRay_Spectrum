@@ -4,7 +4,7 @@
 
 simFolder = None
 simPath = None
-
+detector = None
 file_rgrs = None
 
 c =  299792458 # m/s

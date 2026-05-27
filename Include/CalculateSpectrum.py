@@ -103,7 +103,8 @@ def calculateHXREnergyProbabilityDist(Ere,Z, Ehx):
 # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 def CalculateBremsstrahlungSpectra(timestamp, Ehxr,
-                                    LineOfSight, Plasma, REdistribution):
+                                    LineOfSight, Plasma, REdistribution, 
+                                    Efficiency=0.8):
 
     # .....................................................
     # importing and preparing all inputs and parameters
@@ -159,6 +160,7 @@ def CalculateBremsstrahlungSpectra(timestamp, Ehxr,
         # calculating some preliminar quantities, valid for all voxels
         Sfunc, integral = calculateHXREnergyProbabilityDist(Ere,Znumber, 
                                                       Ehxr)
+        
         # dSdE      = calculateEnergyBCrossSection(Ere, Znumber, Ehxr)
         # integral  = np.trapz(dSdE, x=Ehxr)
 
@@ -191,19 +193,25 @@ def CalculateBremsstrahlungSpectra(timestamp, Ehxr,
             beta  = np.sqrt(1.0 - 1.0/gamma**2)
             Vre   = beta * config.c
             Rfunc = 4.0*np.pi * ionDens * RE_dens * Vre * integral * pDipole
+
             # adjust rate function with RE dist value in r_vox and C-factor:
             moltFactor   = Rfunc * RE_dist  * Cfactor
+            
             # finally, calculate the spectrum for the specific voxel
-            voxelSpectrum = np.sum(Sfunc * moltFactor[:, None], axis=0) # : use of broadcasting
+            voxelSpectrum = np.mean(Sfunc * moltFactor[:, None], axis=0) # : use of broadcasting
+            # prima usavo sum -> credo sia sbagliato perche io non ho tot elettroni con Ere vario
+            # quindi non sommo ma faccio una media dei vari contributi energetici. e' REdens che conta
 
             # summing into the resulting ion spectrum:
             ionSpectrum  += voxelSpectrum
+
+        
 
         # finally, apply attenuation
         if materials is not None:
             ionSpectrum = func.attenuateSpectrum(ionSpectrum, Ehxr, materials)
 
         # add the spectrum for the specific ion
-        allSpectra[ion] = ionSpectrum
+        allSpectra[ion] = ionSpectrum * Efficiency
     
     return allSpectra
